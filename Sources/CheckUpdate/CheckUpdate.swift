@@ -14,13 +14,13 @@ struct LookUpResponse: Decodable {
     }
 }
 
-struct LatestAppStoreVersion {
+public struct LatestAppStoreVersion {
     let version: String
     let minimumOsVersion: String
     let upgradeURL: URL
 }
 
-final class CheckUpdate {
+final public class CheckUpdate {
     private let session: URLSession
     private let jsonDecoder: JSONDecoder
 
