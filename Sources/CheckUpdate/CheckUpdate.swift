@@ -39,6 +39,9 @@ final public class CheckUpdate {
     
     public func showUpdate(for appID: String, withConfirmation: Bool, fromVC: UIViewController) async throws {
         
+        print("currentVersion", currentVersion)
+        print("appName", appName)
+
         guard let latestVersion = try await getLatestAvailableVersion(for: appID) else {
             return
         }
