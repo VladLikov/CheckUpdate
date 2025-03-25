@@ -25,11 +25,11 @@ final public class CheckUpdate {
     private let jsonDecoder: JSONDecoder
 
     private var currentVersion: String? {
-        getBundle(key: "CFBundleShortVersionString")
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
     }
     
     private var appName: String? {
-        getBundle(key: "CFBundleDisplayName")
+        Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
     }
     
     public init(session: URLSession = .shared, jsonDecoder: JSONDecoder = .init()) {
@@ -98,19 +98,5 @@ final public class CheckUpdate {
         
         fromVC.present(ac, animated: true)
         
-    }
-    
-    private func getBundle(key: String) -> String? {
-        guard let filePath = Bundle.main.path(forResource: "Info", ofType: "plist") else {
-          fatalError("Couldn't find file 'Info.plist'.")
-        }
-        // Add the file to a dictionary
-        let plist = NSDictionary(contentsOfFile: filePath)
-        // Check if the variable on plist exists
-        guard let value = plist?.object(forKey: key) as? String else {
-          fatalError("Couldn't find key '\(key)' in 'Info.plist'.")
-        }
-        
-        return value
     }
 }
