@@ -38,9 +38,6 @@ final public class CheckUpdate {
     }
     
     public func showUpdate(for appID: String, withConfirmation: Bool, fromVC: UIViewController) async throws {
-        
-        print("currentVersion", currentVersion)
-        print("appName", appName)
 
         guard let latestVersion = try await getLatestAvailableVersion(for: appID) else {
             return
@@ -79,10 +76,8 @@ final public class CheckUpdate {
                                     force: Bool,
                                     fromVC: UIViewController) {
         
-        guard let appName = self.appName else { return }
-
         let title = NSLocalizedString("New version", bundle: .module, comment: "")
-        let message = NSLocalizedString("A new version of", bundle: .module, comment: "") + " \(appName) " + NSLocalizedString("is available on AppStore. Update now!", bundle: .module, comment: "")
+        let message = NSLocalizedString("A new version of", bundle: .module, comment: "") + " \(appName ?? "") " + NSLocalizedString("is available on AppStore. Update now!", bundle: .module, comment: "")
 
         let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
 
