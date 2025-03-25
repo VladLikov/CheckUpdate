@@ -32,7 +32,7 @@ final public class CheckUpdate {
         getBundle(key: "CFBundleDisplayName")
     }
     
-    init(session: URLSession = .shared, jsonDecoder: JSONDecoder = .init()) {
+    public init(session: URLSession = .shared, jsonDecoder: JSONDecoder = .init()) {
         self.session = session
         self.jsonDecoder = jsonDecoder
     }
