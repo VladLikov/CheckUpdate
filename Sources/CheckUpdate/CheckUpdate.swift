@@ -47,7 +47,8 @@ final public class CheckUpdate {
             return
         }
         
-        if currentVersion < latestVersion.version {
+//        if currentVersion < latestVersion.version {
+        if currentVersion.compareVersion(latestVersion.version) == .orderedAscending {
             await MainActor.run {
                 showAppUpdateAlert(latestVersion: latestVersion, force: !withConfirmation, fromVC: fromVC)
             }
@@ -96,5 +97,11 @@ final public class CheckUpdate {
         
         fromVC.present(ac, animated: true)
         
+    }
+}
+
+extension String {
+    func compareVersion(_ other: String) -> ComparisonResult {
+        return self.compare(other, options: .numeric)
     }
 }
