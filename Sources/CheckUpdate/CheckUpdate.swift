@@ -84,7 +84,7 @@ final public class CheckUpdate {
 
         if !force {
             let notNowButton = UIAlertAction(title: NSLocalizedString("Not now", bundle: .module, comment: ""),
-                                             style: .default)
+                                             style: .cancel)
             ac.addAction(notNowButton)
         }
 
