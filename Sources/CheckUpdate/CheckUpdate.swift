@@ -4,6 +4,12 @@
 import Foundation
 import UIKit
 
+public enum CheckUpdateError: Error {
+    case noUpdateAvailable
+    case cantGetLatestVersion
+    case currentVersionIsNil
+}
+
 struct LookUpResponse: Decodable {
     let results: [LookUpResult]
     
@@ -40,20 +46,20 @@ final public class CheckUpdate {
     public func showUpdate(for appID: String, withConfirmation: Bool, fromVC: UIViewController) async throws {
 
         guard let latestVersion = try await getLatestAvailableVersion(for: appID) else {
-            return
+            throw CheckUpdateError.cantGetLatestVersion
         }
             
         guard let currentVersion else {
-            return
+            throw CheckUpdateError.currentVersionIsNil
         }
         
-//        if currentVersion < latestVersion.version {
         if currentVersion.compareVersion(latestVersion.version) == .orderedAscending {
             await MainActor.run {
                 showAppUpdateAlert(latestVersion: latestVersion, force: !withConfirmation, fromVC: fromVC)
             }
+        } else {
+            throw CheckUpdateError.noUpdateAvailable
         }
-                
     }
     
     public func getLatestAvailableVersion(for appID: String) async throws -> LatestAppStoreVersion? {
