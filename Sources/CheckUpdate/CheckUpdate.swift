@@ -20,7 +20,7 @@ struct LookUpResponse: Decodable {
     }
 }
 
-public struct LatestAppStoreVersion {
+public struct LatestAppStoreVersion: Sendable {
     let version: String
     let minimumOsVersion: String
     let upgradeURL: URL
@@ -54,8 +54,12 @@ final public class CheckUpdate {
         }
         
         if currentVersion.compareVersion(latestVersion.version) == .orderedAscending {
+            let appName = appName
             await MainActor.run {
-                showAppUpdateAlert(latestVersion: latestVersion, force: !withConfirmation, fromVC: fromVC)
+                Self.showAppUpdateAlert(latestVersion: latestVersion,
+                                        appName: appName,
+                                        force: !withConfirmation,
+                                        fromVC: fromVC)
             }
         } else {
             throw CheckUpdateError.noUpdateAvailable
@@ -79,30 +83,54 @@ final public class CheckUpdate {
         }
     }
     
-    private func showAppUpdateAlert(latestVersion: LatestAppStoreVersion,
-                                    force: Bool,
-                                    fromVC: UIViewController) {
+    @MainActor
+    private static func showAppUpdateAlert(latestVersion: LatestAppStoreVersion,
+                                           appName: String?,
+                                           force: Bool,
+                                           fromVC: UIViewController) {
         
-        let title = NSLocalizedString("New version", bundle: .module, comment: "")
-        let message = NSLocalizedString("A new version of", bundle: .module, comment: "") + " \(appName ?? "") " + NSLocalizedString("is available on AppStore. Update now!", bundle: .module, comment: "")
+        let title = String(
+            localized: "New Version",
+            bundle: .module,
+            comment: "Alert title shown when a newer App Store version is available."
+        )
+        let messagePrefix = String(
+            localized: "A new version of",
+            bundle: .module,
+            comment: "First part of the update alert message, followed by the app name."
+        )
+        let messageSuffix = String(
+            localized: "is available on AppStore. Update now!",
+            bundle: .module,
+            comment: "Second part of the update alert message, shown after the app name."
+        )
+        let message = "\(messagePrefix) \(appName ?? "") \(messageSuffix)"
 
         let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
 
         if !force {
-            let notNowButton = UIAlertAction(title: NSLocalizedString("Not now", bundle: .module, comment: ""),
+            let notNowButton = UIAlertAction(title: String(
+                                                 localized: "Not Now",
+                                                 bundle: .module,
+                                                 comment: "Cancel button title that dismisses the optional update alert."
+                                             ),
                                              style: .cancel)
             ac.addAction(notNowButton)
         }
 
-        let updateButton = UIAlertAction(title: NSLocalizedString("Update", bundle: .module, comment: ""),
+        let updateButton = UIAlertAction(title: String(
+                                             localized: "Update",
+                                             bundle: .module,
+                                             comment: "Primary button title that opens the App Store update page."
+                                         ),
                                          style: .default) { _ in
             UIApplication.shared.open(latestVersion.upgradeURL, options: [:])
         }
 
         ac.addAction(updateButton)
+        ac.preferredAction = updateButton
         
         fromVC.present(ac, animated: true)
-        
     }
 }
 
