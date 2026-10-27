@@ -1,0 +1,44 @@
+name: CheckUpdate API tests
+on:
+  push:
+    branches: [codex/checkupdate-1.0.1]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .build
+          xcodebuild -version
+          xcrun swift --version
+          xcrun simctl list devices available -j > .build/simulators.json
+          SDK_VERSION=$(xcrun --sdk iphonesimulator --show-sdk-version)
+          SIMULATOR_ID=$(python3 -c 'import json,sys; r="com.apple.CoreSimulator.SimRuntime.iOS-"+sys.argv[1].replace(".","-"); ds=json.load(open(".build/simulators.json"))["devices"].get(r,[]); ds=sorted((d for d in ds if d.get("isAvailable") and d["name"].startswith("iPhone")),key=lambda d:d["name"]); assert ds, "Install simulator runtime "+r; print(ds[0]["udid"])' "$SDK_VERSION")
+          echo "SDK=$SDK_VERSION simulator=$SIMULATOR_ID"
+          xcodebuild -scheme CheckUpdate -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath .build/xcode -resultBundlePath .build/TestResults.xcresult -parallel-testing-enabled NO test CODE_SIGNING_ALLOWED=NO 2>&1 | tee .build/test.log
+      - name: Summarize tests
+        if: always()
+        run: |
+          if [ -d .build/TestResults.xcresult ]; then
+            xcrun xcresulttool get test-results summary --path .build/TestResults.xcresult > .build/test-summary.json
+            cat .build/test-summary.json
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: checkupdate-tests
+          path: |
+            .build/test-summary.json
+            .build/test.log
+            .build/simulators.json
+          retention-days: 7
