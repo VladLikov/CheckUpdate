@@ -1,0 +1,35 @@
+name: Publish verified CheckUpdate 1.0.1
+on:
+  push:
+    branches: [codex/checkupdate-1.0.1]
+    paths: [.github/workflows/publish-compatible-patch.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERIFIED_SHA: 47553afef0a8b59aceee814b3e2804e1ebfdc9cc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check exact tested revision
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/VladLikov/CheckUpdate/actions/runs/40526455965 --jq '.head_sha')" = "$VERIFIED_SHA"
+          test "$(gh api repos/VladLikov/CheckUpdate/actions/runs/40526455965 --jq '.conclusion')" = success
+          test "$(git show "$VERIFIED_SHA:Package.swift" | head -n 1)" = '// swift-tools-version: 6.0'
+          if git ls-remote --exit-code --tags origin refs/tags/1.0.1; then
+            echo 'Tag already exists; refusing to move or overwrite it.' >&2
+            exit 1
+          fi
+      - name: Tag and release the verified commit
+        run: |
+          set -euo pipefail
+          git tag 1.0.1 "$VERIFIED_SHA"
+          git push origin refs/tags/1.0.1
+          gh release create 1.0.1 --verify-tag --title '1.0.1 — data-only update results' --notes 'Add public read-only version fields and a public LatestAppStoreVersion initializer. Preserve showUpdate and the Swift 6.0 / iOS 15 requirements. Validate HTTP responses and upgrade URLs, encode lookup parameters, and reject cancelled operations. Validation: 8 tests passed with Xcode 26.6 on iOS Simulator 26.5 (run 40526455965). Physical-device presentation was not tested.'
