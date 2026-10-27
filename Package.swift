@@ -9,5 +9,6 @@ let package = Package(
     targets: [
         .target(name: "CheckUpdate", resources: [.process("Resources")]),
         .testTarget(name: "CheckUpdateTests", dependencies: ["CheckUpdate"])
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )
