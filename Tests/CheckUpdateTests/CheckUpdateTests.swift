@@ -62,7 +62,7 @@ final class CheckUpdateTests: XCTestCase {
 
     @MainActor
     func testCancellationBeforeRequest() async {
-        let task = Task { try await client().getLatestAvailableVersion(for: "1") }
+        let task = Task { try await CheckUpdate().getLatestAvailableVersion(for: "1") }
         task.cancel()
         do {
             _ = try await task.value
